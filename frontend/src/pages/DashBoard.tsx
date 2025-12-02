@@ -5,7 +5,7 @@ import api from "../api/api";
 import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
 
-export default function Dashboard() {
+export default function DashBoard() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user, token } = useAppSelector((s) => s.auth);
