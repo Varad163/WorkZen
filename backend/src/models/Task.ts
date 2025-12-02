@@ -1,26 +1,35 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface ITask extends Document {
   title: string;
-  description: string;
-  project: string;
-  assignees: string[];
+  description?: string;
+  project: Types.ObjectId;     // FIXED
+  assignees: Types.ObjectId[]; // FIXED
   dueDate?: Date;
-  createdBy: string;
+  createdBy: Types.ObjectId;   // FIXED
   status: string;
   completedAt?: Date;
   timeSpent: number;
 }
 
 const TaskSchema = new Schema<ITask>({
-  title: String,
+  title: { type: String, required: true },
   description: String,
+
   project: { type: Schema.Types.ObjectId, ref: "Project" },
-  assignees: [{ type: Schema.Types.ObjectId, ref: "User" }],
+
+  assignees: [
+    { type: Schema.Types.ObjectId, ref: "User" }
+  ],
+
   dueDate: Date,
+
   createdBy: { type: Schema.Types.ObjectId, ref: "User" },
+
   status: String,
+
   completedAt: Date,
+
   timeSpent: { type: Number, default: 0 }
 });
 
