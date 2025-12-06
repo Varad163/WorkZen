@@ -1,14 +1,19 @@
+import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
-import { useAppSelector } from "../store/hooks";
+import type { ReactNode } from "react";
+import type { RootState } from "../store/store";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const token = useAppSelector((s) => s.auth.token);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const token = useSelector((state: RootState) => state.auth.token);
 
-  if (!token) return <Navigate to="/login" replace />;
+  if (!user || !token) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <>{children}</>;
 }
