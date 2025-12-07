@@ -1,50 +1,50 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
 
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-}
+// Restore saved user/token on page reload
+const savedUser = localStorage.getItem("user");
+const savedToken = localStorage.getItem("token");
 
 interface AuthState {
-  user: User | null;
+  user: any;
   token: string | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: AuthState = {
-  user: null,
-  token: localStorage.getItem("token"),
+  user: savedUser ? JSON.parse(savedUser) : null,
+  token: savedToken || null,
   loading: false,
   error: null,
 };
 
+// ------------------- Thunks -------------------
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async (data: { email: string; password: string }, { rejectWithValue }) => {
+  async (form: { email: string; password: string }, thunkAPI) => {
     try {
-      const res = await api.post("/auth/login", data);
-      return res.data;
+      const res = await api.post("/auth/login", form);
+      return res.data; // must include { user, token }
     } catch (err: any) {
-      return rejectWithValue(err.response.data.error || "Login failed");
+      return thunkAPI.rejectWithValue(err.response.data.message);
     }
   }
 );
 
 export const signupUser = createAsyncThunk(
   "auth/signupUser",
-  async (data: { name: string; email: string; password: string }, { rejectWithValue }) => {
+  async (form: { name: string; email: string; password: string }, thunkAPI) => {
     try {
-      const res = await api.post("/auth/signup", data);
-      return res.data;
+      const res = await api.post("/auth/signup", form);
+      return res.data; // must include { user, token }
     } catch (err: any) {
-      return rejectWithValue(err.response.data.error || "Signup failed");
+      return thunkAPI.rejectWithValue(err.response.data.message);
     }
   }
 );
 
+// ------------------- Slice -------------------
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -52,37 +52,56 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
+      localStorage.removeItem("user");
       localStorage.removeItem("token");
     },
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        localStorage.setItem("token", action.payload.token);
-      })
-      .addCase(loginUser.rejected, (state, action:any) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
 
-      .addCase(signupUser.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(signupUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        localStorage.setItem("token", action.payload.token);
-      })
-      .addCase(signupUser.rejected, (state, action:any) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
-  }
+  // ⭐⭐ THIS IS WHERE YOU ADD YOUR CODE ⭐⭐
+  extraReducers: (builder) => {
+    // LOGIN SUCCESS
+    builder.addCase(loginUser.fulfilled, (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.loading = false;
+      state.error = null;
+
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("token", action.payload.token);
+    });
+
+    // SIGNUP SUCCESS
+    builder.addCase(signupUser.fulfilled, (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.loading = false;
+      state.error = null;
+
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("token", action.payload.token);
+    });
+
+    // PENDING STATE
+    builder.addCase(loginUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(signupUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+
+    // ERROR STATE
+    builder.addCase(loginUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+    builder.addCase(signupUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+  },
 });
 
 export const { logout } = authSlice.actions;
-
 export default authSlice.reducer;
