@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 import app from "./app";
-import connectDB from "./config/db";
+import connectDB from "./config/db";import projectRoutes from "./routes/project.routes";
+
+app.use("/api/projects", projectRoutes);
+
 
 dotenv.config();
 
