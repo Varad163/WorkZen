@@ -21,6 +21,8 @@ api.interceptors.request.use((config) => {
 export const createProjectAPI = (data: any) => {
   return api.post("/projects", data);  // <--- THIS IS CORRECT
 };
+export const getProjectById = (id: string) =>
+  api.get(`/projects/${id}`);
 
 export const getProjectsAPI = () => api.get("/projects");
 
