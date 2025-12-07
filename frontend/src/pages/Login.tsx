@@ -18,26 +18,59 @@ const Login = () => {
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-4">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 p-4">
 
-      {error && <p className="text-red-600">{error}</p>}
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
+        
+        <h2 className="text-3xl font-bold text-white text-center mb-6 drop-shadow">
+          Welcome Back 👋
+        </h2>
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <input type="email" placeholder="Email" className="input"
-               onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        {error && (
+          <p className="text-red-300 text-center mb-4 font-medium">
+            {error}
+          </p>
+        )}
 
-        <input type="password" placeholder="Password" className="input"
-               onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
 
-        <button disabled={loading} className="btn-primary">
-          {loading ? "Loading..." : "Login"}
-        </button>
-      </form>
+          <div>
+            <label className="text-white font-medium">Email</label>
+            <input
+              type="email"
+              required
+              placeholder="Enter your email"
+              className="w-full mt-1 p-3 rounded-xl bg-white/20 text-white placeholder-white/60 border border-white/30 focus:ring-2 focus:ring-indigo-300 outline-none"
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          </div>
 
-      <p className="mt-3">
-        New user? <Link to="/signup">Create Account</Link>
-      </p>
+          <div>
+            <label className="text-white font-medium">Password</label>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              className="w-full mt-1 p-3 rounded-xl bg-white/20 text-white placeholder-white/60 border border-white/30 focus:ring-2 focus:ring-indigo-300 outline-none"
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+          </div>
+
+          <button
+            disabled={loading}
+            className="w-full py-3 mt-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl shadow-lg transition active:scale-95 disabled:opacity-50"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <p className="mt-5 text-center text-white/80">
+          New user?{" "}
+          <Link to="/signup" className="text-white font-semibold hover:underline">
+            Create an Account
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };
