@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import CreateProject from "./pages/CreateProject";
 
 export default function App() {
   return (
@@ -14,6 +15,8 @@ export default function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/create-project" element={<CreateProject />} />
+
 
         <Route
           path="/dashboard"
