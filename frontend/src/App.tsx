@@ -12,14 +12,12 @@ export default function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* Redirect root to login */}
+       
         <Route path="/" element={<Navigate to="/login" />} />
 
-        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected routes */}
         <Route
           path="/dashboard"
           element={
