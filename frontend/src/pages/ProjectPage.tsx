@@ -407,9 +407,17 @@ const ProjectPage = () => {
               >
                 Share
               </button>
+              <button
+  onClick={() => navigate(`/project/${id}/board`)}
+  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+>
+  Open Kanban Board
+</button>
+
             </div>
           </div>
         </div>
+        
       )}
 
     </div>
