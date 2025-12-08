@@ -8,10 +8,18 @@ const ProjectPage = () => {
   const navigate = useNavigate();
 
   const [project, setProject] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    dueDate: "",
+  });
 
   useEffect(() => {
     loadProject();
+    loadTasks();
   }, []);
 
   const loadProject = async () => {
@@ -22,6 +30,15 @@ const ProjectPage = () => {
       console.log(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTasks = async () => {
+    try {
+      const res = await api.get(`/tasks/${id}`);
+      setTasks(res.data);
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -37,6 +54,38 @@ const ProjectPage = () => {
     }
   };
 
+  const createTask = async () => {
+    if (!newTask.title.trim()) return alert("Task title is required");
+
+    try {
+      await api.post(`/tasks/${id}`, newTask);
+      setNewTask({ title: "", description: "", dueDate: "" });
+      loadTasks();
+    } catch (err) {
+      console.log(err);
+      alert("Failed to create task");
+    }
+  };
+
+  const updateStatus = async (taskId: string, newStatus: string) => {
+    try {
+      await api.put(`/tasks/status/${taskId}`, { status: newStatus });
+      loadTasks();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      loadTasks();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // Handle loading & not found
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -58,7 +107,7 @@ const ProjectPage = () => {
       <Navbar />
 
       <div className="max-w-4xl mx-auto p-6 mt-6 bg-white shadow-lg rounded-xl">
-
+        
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold">{project.title}</h1>
@@ -83,7 +132,6 @@ const ProjectPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
           <div className="p-4 border rounded-lg bg-gray-50">
             <p className="font-semibold">Priority</p>
             <span
@@ -120,12 +168,85 @@ const ProjectPage = () => {
           </div>
         </div>
 
-        {/* Placeholder for tasks (next feature) */}
-        <div className="mt-8 p-4 border rounded-lg bg-gray-50">
-          <h2 className="text-xl font-bold mb-3">Tasks</h2>
-          <p className="text-gray-500">Task system coming next… 🔧</p>
+
+        <div className="mt-10 p-6 bg-gray-50 rounded-xl shadow-inner">
+          <h2 className="text-xl font-bold mb-4">Add New Task</h2>
+
+          <input
+            type="text"
+            placeholder="Task Title"
+            className="w-full p-3 border rounded-lg mb-3"
+            value={newTask.title}
+            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+          />
+
+          <textarea
+            placeholder="Task Description"
+            className="w-full p-3 border rounded-lg mb-3"
+            value={newTask.description}
+            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+          />
+
+          <input
+            type="date"
+            className="w-full p-3 border rounded-lg mb-3"
+            value={newTask.dueDate}
+            onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+          />
+
+          <button
+            onClick={createTask}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Add Task
+          </button>
         </div>
 
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Tasks</h2>
+
+          {tasks.length === 0 ? (
+            <p className="text-gray-500">No tasks yet. Add one above.</p>
+          ) : (
+            tasks.map((task) => (
+              <div
+                key={task._id}
+                className="bg-gray-50 p-4 rounded-lg shadow flex justify-between items-center mb-3"
+              >
+                <div>
+                  <h3 className="font-semibold text-lg">{task.title}</h3>
+                  <p className="text-gray-600 text-sm">{task.description}</p>
+                  {task.dueDate && (
+                    <p className="text-sm text-blue-600 mt-1">
+                      Due: {task.dueDate.split("T")[0]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4">
+                
+                  <select
+                    className="border p-2 rounded-lg"
+                    value={task.status}
+                    onChange={(e) => updateStatus(task._id, e.target.value)}
+                  >
+                    <option value="todo">Todo</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+
+                  
+                  <button
+                    className="text-red-600 text-xl"
+                    onClick={() => deleteTask(task._id)}
+                  >
+                    ✖
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
