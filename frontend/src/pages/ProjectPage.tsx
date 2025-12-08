@@ -14,6 +14,10 @@ const ProjectPage = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
 
+  // ⭐ Share Modal
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareEmail, setShareEmail] = useState("");
+
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -47,7 +51,6 @@ const ProjectPage = () => {
 
   const deleteProject = async () => {
     if (!confirm("Are you sure you want to delete this project?")) return;
-
     try {
       await api.delete(`/projects/${id}`);
       navigate("/dashboard");
@@ -59,7 +62,6 @@ const ProjectPage = () => {
 
   const createTask = async () => {
     if (!newTask.title.trim()) return alert("Task title is required");
-
     try {
       await api.post(`/tasks/${id}`, newTask);
       setNewTask({ title: "", description: "", dueDate: "" });
@@ -99,6 +101,21 @@ const ProjectPage = () => {
     }
   };
 
+  // ⭐ SHARE PROJECT FUNCTION
+  const shareProject = async () => {
+    if (!shareEmail.trim()) return alert("Enter an email");
+    try {
+      await api.put(`/projects/share/${id}`, { email: shareEmail });
+
+      alert("Project shared successfully!");
+      setShareEmail("");
+      setShareModalOpen(false);
+      loadProject();
+    } catch (err: any) {
+      alert(err.response?.data?.msg || "Failed to share project");
+    }
+  };
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -118,7 +135,8 @@ const ProjectPage = () => {
       <Navbar />
 
       <div className="max-w-4xl mx-auto p-6 mt-6 bg-white shadow-lg rounded-xl">
-        {/* Project Header */}
+        
+        {/* HEADER */}
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold">{project.title}</h1>
@@ -132,6 +150,15 @@ const ProjectPage = () => {
             >
               Edit
             </button>
+
+            {/* ⭐ SHARE BUTTON */}
+            <button
+              onClick={() => setShareModalOpen(true)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              Share
+            </button>
+
             <button
               onClick={deleteProject}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
@@ -141,6 +168,7 @@ const ProjectPage = () => {
           </div>
         </div>
 
+        {/* PRIORITY / STATUS / DEADLINE */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 border rounded-lg bg-gray-50">
             <p className="font-semibold">Priority</p>
@@ -178,6 +206,7 @@ const ProjectPage = () => {
           </div>
         </div>
 
+        {/* TASK INPUT */}
         <div className="mt-10 p-6 bg-gray-50 rounded-xl shadow-inner">
           <h2 className="text-xl font-bold mb-4">Add New Task</h2>
 
@@ -215,7 +244,7 @@ const ProjectPage = () => {
           </button>
         </div>
 
-        {/* Task List */}
+        {/* TASK LIST */}
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Tasks</h2>
 
@@ -273,6 +302,8 @@ const ProjectPage = () => {
           )}
         </div>
       </div>
+
+      {/* EDIT TASK MODAL */}
       {editModalOpen && editingTask && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
@@ -347,6 +378,40 @@ const ProjectPage = () => {
           </div>
         </div>
       )}
+
+      {/* ⭐ SHARE PROJECT MODAL */}
+      {shareModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold mb-4">Share Project</h2>
+
+            <input
+              type="email"
+              placeholder="Enter email to share"
+              className="w-full p-2 border rounded-lg mb-3"
+              value={shareEmail}
+              onChange={(e) => setShareEmail(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg"
+                onClick={() => setShareModalOpen(false)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg"
+                onClick={shareProject}
+              >
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
