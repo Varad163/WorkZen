@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import CreateProject from "./pages/CreateProject";
 import ProjectPage from "./pages/ProjectPage";
 import EditProject from "./pages/EditProject";
+import KanbanBoard from "./pages/KanbanBoard";
 
 export default function App() {
   return (
@@ -53,6 +54,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+          <Route
+            path="/project/:id/board"
+            element={
+              <ProtectedRoute>
+                <KanbanBoard />
+              </ProtectedRoute>
+        }
+      />
 
       </Routes>
     </BrowserRouter>
