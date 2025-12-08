@@ -68,3 +68,32 @@ export const deleteTask = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to delete task" });
   }
 };
+
+
+export const editTask = async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+
+    const updatedTask = await Task.findByIdAndUpdate(
+      taskId,
+      {
+        title: req.body.title,
+        description: req.body.description,
+        dueDate: req.body.dueDate,
+        assignees: req.body.assignees,
+        status: req.body.status,
+      },
+      { new: true }
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.json(updatedTask);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Failed to edit task" });
+  }
+};
+

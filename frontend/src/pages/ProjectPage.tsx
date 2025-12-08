@@ -11,6 +11,9 @@ const ProjectPage = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<any>(null);
+
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -85,29 +88,37 @@ const ProjectPage = () => {
     }
   };
 
-  // Handle loading & not found
-  if (loading) {
+  const saveEditedTask = async () => {
+    try {
+      await api.put(`/tasks/edit/${editingTask._id}`, editingTask);
+      setEditModalOpen(false);
+      loadTasks();
+    } catch (err) {
+      console.log(err);
+      alert("Failed to update task");
+    }
+  };
+
+  if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <p className="text-lg font-semibold">Loading project...</p>
       </div>
     );
-  }
 
-  if (!project) {
+  if (!project)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <p className="text-lg font-semibold text-red-600">Project not found ❌</p>
       </div>
     );
-  }
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
 
       <div className="max-w-4xl mx-auto p-6 mt-6 bg-white shadow-lg rounded-xl">
-        
+        {/* Project Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold">{project.title}</h1>
@@ -121,7 +132,6 @@ const ProjectPage = () => {
             >
               Edit
             </button>
-
             <button
               onClick={deleteProject}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
@@ -168,7 +178,6 @@ const ProjectPage = () => {
           </div>
         </div>
 
-
         <div className="mt-10 p-6 bg-gray-50 rounded-xl shadow-inner">
           <h2 className="text-xl font-bold mb-4">Add New Task</h2>
 
@@ -184,14 +193,18 @@ const ProjectPage = () => {
             placeholder="Task Description"
             className="w-full p-3 border rounded-lg mb-3"
             value={newTask.description}
-            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            onChange={(e) =>
+              setNewTask({ ...newTask, description: e.target.value })
+            }
           />
 
           <input
             type="date"
             className="w-full p-3 border rounded-lg mb-3"
             value={newTask.dueDate}
-            onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+            onChange={(e) =>
+              setNewTask({ ...newTask, dueDate: e.target.value })
+            }
           />
 
           <button
@@ -202,6 +215,7 @@ const ProjectPage = () => {
           </button>
         </div>
 
+        {/* Task List */}
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Tasks</h2>
 
@@ -216,26 +230,37 @@ const ProjectPage = () => {
                 <div>
                   <h3 className="font-semibold text-lg">{task.title}</h3>
                   <p className="text-gray-600 text-sm">{task.description}</p>
+
                   {task.dueDate && (
                     <p className="text-sm text-blue-600 mt-1">
                       Due: {task.dueDate.split("T")[0]}
                     </p>
                   )}
+
+                  <button
+                    className="text-blue-600 text-sm mt-2"
+                    onClick={() => {
+                      setEditingTask(task);
+                      setEditModalOpen(true);
+                    }}
+                  >
+                    Edit
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-4">
-                
                   <select
                     className="border p-2 rounded-lg"
                     value={task.status}
-                    onChange={(e) => updateStatus(task._id, e.target.value)}
+                    onChange={(e) =>
+                      updateStatus(task._id, e.target.value)
+                    }
                   >
                     <option value="todo">Todo</option>
                     <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                   </select>
 
-                  
                   <button
                     className="text-red-600 text-xl"
                     onClick={() => deleteTask(task._id)}
@@ -248,6 +273,80 @@ const ProjectPage = () => {
           )}
         </div>
       </div>
+      {editModalOpen && editingTask && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold mb-4">Edit Task</h2>
+
+            <input
+              type="text"
+              className="w-full p-2 border rounded-lg mb-3"
+              value={editingTask.title}
+              onChange={(e) =>
+                setEditingTask({ ...editingTask, title: e.target.value })
+              }
+            />
+
+            <textarea
+              className="w-full p-2 border rounded-lg mb-3"
+              value={editingTask.description}
+              onChange={(e) =>
+                setEditingTask({
+                  ...editingTask,
+                  description: e.target.value,
+                })
+              }
+            />
+
+            <input
+              type="date"
+              className="w-full p-2 border rounded-lg mb-3"
+              value={
+                editingTask.dueDate
+                  ? editingTask.dueDate.split("T")[0]
+                  : ""
+              }
+              onChange={(e) =>
+                setEditingTask({
+                  ...editingTask,
+                  dueDate: e.target.value,
+                })
+              }
+            />
+
+            <select
+              className="w-full p-2 border rounded-lg mb-3"
+              value={editingTask.status}
+              onChange={(e) =>
+                setEditingTask({
+                  ...editingTask,
+                  status: e.target.value,
+                })
+              }
+            >
+              <option value="todo">Todo</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg"
+                onClick={() => setEditModalOpen(false)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                onClick={saveEditedTask}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
