@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import Navbar from "../components/Navbar";
+import KanbanBoard from "../components/KanbanBoard";
 
 const ProjectPage = () => {
   const { id } = useParams();
@@ -34,7 +35,7 @@ const ProjectPage = () => {
       const res = await api.get(`/projects/${id}`);
       setProject(res.data);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -45,7 +46,7 @@ const ProjectPage = () => {
       const res = await api.get(`/tasks/${id}`);
       setTasks(res.data);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -55,19 +56,20 @@ const ProjectPage = () => {
       await api.delete(`/projects/${id}`);
       navigate("/dashboard");
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert("Failed to delete project");
     }
   };
 
   const createTask = async () => {
     if (!newTask.title.trim()) return alert("Task title is required");
+
     try {
       await api.post(`/tasks/${id}`, newTask);
       setNewTask({ title: "", description: "", dueDate: "" });
       loadTasks();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert("Failed to create task");
     }
   };
@@ -77,7 +79,7 @@ const ProjectPage = () => {
       await api.put(`/tasks/status/${taskId}`, { status: newStatus });
       loadTasks();
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -86,7 +88,7 @@ const ProjectPage = () => {
       await api.delete(`/tasks/${taskId}`);
       loadTasks();
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -96,7 +98,7 @@ const ProjectPage = () => {
       setEditModalOpen(false);
       loadTasks();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert("Failed to update task");
     }
   };
@@ -104,6 +106,7 @@ const ProjectPage = () => {
   // ⭐ SHARE PROJECT FUNCTION
   const shareProject = async () => {
     if (!shareEmail.trim()) return alert("Enter an email");
+
     try {
       await api.put(`/projects/share/${id}`, { email: shareEmail });
 
@@ -134,7 +137,7 @@ const ProjectPage = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto p-6 mt-6 bg-white shadow-lg rounded-xl">
+      <div className="max-w-5xl mx-auto p-6 mt-6 bg-white shadow-lg rounded-xl">
         
         {/* HEADER */}
         <div className="flex justify-between items-start mb-6">
@@ -151,12 +154,19 @@ const ProjectPage = () => {
               Edit
             </button>
 
-            {/* ⭐ SHARE BUTTON */}
             <button
               onClick={() => setShareModalOpen(true)}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
               Share
+            </button>
+
+            {/* ⭐ Kanban Button */}
+            <button
+              onClick={() => navigate(`/project/${id}/board`)}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+            >
+              Kanban
             </button>
 
             <button
@@ -281,9 +291,7 @@ const ProjectPage = () => {
                   <select
                     className="border p-2 rounded-lg"
                     value={task.status}
-                    onChange={(e) =>
-                      updateStatus(task._id, e.target.value)
-                    }
+                    onChange={(e) => updateStatus(task._id, e.target.value)}
                   >
                     <option value="todo">Todo</option>
                     <option value="in-progress">In Progress</option>
@@ -300,6 +308,12 @@ const ProjectPage = () => {
               </div>
             ))
           )}
+        </div>
+
+        {/* ⭐ KANBAN BOARD SECTION */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold mb-4">Kanban Board</h2>
+          <KanbanBoard tasks={tasks} updateStatus={updateStatus} />
         </div>
       </div>
 
@@ -322,10 +336,7 @@ const ProjectPage = () => {
               className="w-full p-2 border rounded-lg mb-3"
               value={editingTask.description}
               onChange={(e) =>
-                setEditingTask({
-                  ...editingTask,
-                  description: e.target.value,
-                })
+                setEditingTask({ ...editingTask, description: e.target.value })
               }
             />
 
@@ -333,15 +344,10 @@ const ProjectPage = () => {
               type="date"
               className="w-full p-2 border rounded-lg mb-3"
               value={
-                editingTask.dueDate
-                  ? editingTask.dueDate.split("T")[0]
-                  : ""
+                editingTask.dueDate ? editingTask.dueDate.split("T")[0] : ""
               }
               onChange={(e) =>
-                setEditingTask({
-                  ...editingTask,
-                  dueDate: e.target.value,
-                })
+                setEditingTask({ ...editingTask, dueDate: e.target.value })
               }
             />
 
@@ -349,10 +355,7 @@ const ProjectPage = () => {
               className="w-full p-2 border rounded-lg mb-3"
               value={editingTask.status}
               onChange={(e) =>
-                setEditingTask({
-                  ...editingTask,
-                  status: e.target.value,
-                })
+                setEditingTask({ ...editingTask, status: e.target.value })
               }
             >
               <option value="todo">Todo</option>
@@ -379,7 +382,7 @@ const ProjectPage = () => {
         </div>
       )}
 
-      {/* ⭐ SHARE PROJECT MODAL */}
+      {/* ⭐ SHARE MODAL */}
       {shareModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
@@ -407,17 +410,9 @@ const ProjectPage = () => {
               >
                 Share
               </button>
-              <button
-  onClick={() => navigate(`/project/${id}/board`)}
-  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
->
-  Open Kanban Board
-</button>
-
             </div>
           </div>
         </div>
-        
       )}
 
     </div>
